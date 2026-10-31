@@ -1,0 +1,37 @@
+# Segredos e ambiente local
+.env
+.env.*
+!.env.example
+
+# Ferramentas de IA que não fazem parte do projeto
+.agents/
+.cursor/
+.windsurf/
+.claude/*
+!.claude/skills/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.import_linter_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+mutants/
+.mutmut-cache
+
+# Node
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Editor
+.vscode/
+.idea/
