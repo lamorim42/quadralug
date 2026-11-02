@@ -54,6 +54,21 @@ def test_credentials_scope_excludes(compose: dict[str, Any], service: str) -> No
 
     assert "MYSQL" not in text
     assert "DATABASE" not in text
+    assert "env_file" not in compose["services"][service]
+
+
+@pytest.mark.parametrize("service", ["backend", "bff"])
+@pytest.mark.parametrize(
+    ("variable", "value"),
+    [
+        ("OTEL_EXPORTER_OTLP_ENDPOINT", "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"),
+        ("DEPLOYMENT_ENVIRONMENT", "${DEPLOYMENT_ENVIRONMENT:-dev}"),
+    ],
+)
+def test_observability_env_reaches_service(
+    compose: dict[str, Any], service: str, variable: str, value: str
+) -> None:
+    assert compose["services"][service]["environment"][variable] == value
 
 
 @pytest.mark.parametrize(

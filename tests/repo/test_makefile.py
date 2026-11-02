@@ -21,6 +21,7 @@ exit 0
 def project(tmp_path: Path) -> Path:
     path = tmp_path / "project"
     (path / "web").mkdir(parents=True)
+    (path / "services" / "backend").mkdir(parents=True)
     shutil.copy(ROOT / "Makefile", path)
     shutil.copy(ROOT / ".env.example", path)
     subprocess.run(["git", "init", "-q", str(path)], check=True)
@@ -75,6 +76,23 @@ def test_make_check_fails_when_tool_fails(project: Path, tool: str) -> None:
     assert code != 0
 
 
+def test_make_check_fails_on_real_vitest_failure(tmp_path: Path) -> None:
+    web = tmp_path / "web"
+    shutil.copytree(
+        ROOT / "web", web, ignore=shutil.ignore_patterns("node_modules", "dist", "coverage")
+    )
+    (web / "node_modules").symlink_to(ROOT / "web" / "node_modules")
+    (web / "src" / "planted.test.ts").write_text(
+        'import { expect, test } from "vitest";\n\n'
+        'test("falha de propósito", () => {\n  expect(1).toBe(2);\n});\n'
+    )
+
+    result = subprocess.run(["npm", "test"], cwd=web, capture_output=True, text=True)
+
+    assert result.returncode != 0
+    assert "falha de propósito" in result.stdout + result.stderr
+
+
 def test_make_check_excludes_integration_suites(project: Path) -> None:
     _, calls, _ = run_make(project, "check")
 
@@ -87,7 +105,8 @@ def test_make_mutation_runs_gate(project: Path) -> None:
     code, calls, _ = run_make(project, "mutation")
 
     assert code == 0
-    assert any("tools/mutation_gate.py mutants/mutmut-cicd-stats.json" in call for call in calls)
+    report = "services/backend/mutants/mutmut-cicd-stats.json"
+    assert any(f"tools/mutation_gate.py {report}" in call for call in calls)
 
 
 def test_make_mutation_runs_gate_after_mutmut_fails(project: Path) -> None:
@@ -103,10 +122,11 @@ def test_make_mutation_runs_gate_failure_stops_target(project: Path) -> None:
 
 
 def test_make_mutation_runs_gate_without_stale_report(project: Path) -> None:
-    report = project / "mutants" / "mutmut-cicd-stats.json"
-    report.parent.mkdir()
+    mutants = project / "services" / "backend" / "mutants"
+    mutants.mkdir()
+    report = mutants / "mutmut-cicd-stats.json"
     report.write_text(json.dumps({"killed": 1, "total": 1}))
-    previous_run = project / "mutants" / "planted.py.meta"
+    previous_run = mutants / "planted.py.meta"
     previous_run.write_text("{}")
 
     run_make(project, "mutation")

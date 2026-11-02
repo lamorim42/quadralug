@@ -66,6 +66,7 @@ Proof: `uv run pytest tests/integration/test_stack.py -k test_every_service_line
 **C15** - O `resource` de cada log tem `service.name` igual a `quadralug-bff` ou `quadralug-backend` e `deployment.environment` igual ao valor de `DEPLOYMENT_ENVIRONMENT` (AC 15)
 Proof: `uv run pytest packages/observability/tests/test_json_formatter.py -k test_resource_attributes`
 Proof: `uv run pytest tests/integration/test_stack.py -k test_logs_carry_resource`
+Proof: `uv run pytest tests/repo/test_compose.py -k test_observability_env_reaches_service`
 
 **C16** - Ao terminar uma requisição, o serviço registra um log INFO com `http.request.method`, `http.route` com o molde da rota, `http.response.status_code` e `duration_ms`; uma exceção não tratada registra status `500` (AC 16)
 Proof: `uv run pytest packages/observability/tests/test_request_log.py -k test_request_log`
@@ -75,6 +76,7 @@ Proof: `uv run pytest packages/observability/tests/test_redaction.py -k test_red
 
 **C18** - Com `OTEL_EXPORTER_OTLP_ENDPOINT` definido, spans chegam em `POST /v1/traces` nesse endereço; sem a variável, ou com ela vazia, nenhum exportador OTLP é criado (AC 18)
 Proof: `uv run pytest packages/observability/tests/test_otlp_export.py -k test_otlp`
+Proof: `uv run pytest tests/repo/test_compose.py -k test_observability_env_reaches_service`
 
 ### S3 - O gate local recusa código fora do padrão
 
@@ -91,6 +93,7 @@ Proof: `uv run pytest tests/repo/test_quality_gates.py -k test_import_contract`
 **C22** - `tools/mutation_gate.py` sai com 0 para 80 de 100 e com código diferente de 0 para 79 de 100, 0 mutantes e relatório ausente; `make mutation` executa esse script (AC 22)
 Proof: `uv run pytest tests/repo/test_mutation_gate.py -k test_gate`
 Proof: `uv run pytest tests/repo/test_makefile.py -k test_make_mutation_runs_gate`
+Proof: `uv run pytest tests/integration/test_mutation_real.py -k test_make_mutation_real`
 
 ### S4 - As regras de branch valem antes do GitHub
 
@@ -202,7 +205,7 @@ Proof: `uv run pytest tests/integration/test_stack.py -k test_boot_logs_no_error
 ## Handoff
 
 - **Settled mid-build:** none
-- **Dispatched:** none
+- **Dispatched:** Verifier, no `HEAD` 4948023
 - **Boundary:** C1-C41 fechados no commit que adiciona esta linha
-- **Abandoned:** do `/code-review high`, 3 achados ficam de fora: (a) a config do mutmut não muta este monorepo, e a F1 precisa resolver isso antes de cobrar a meta de 80%; (b) `check-pr` roda a política do próprio PR, e carregar a política da base quebraria o PR da F0, porque `develop` ainda não tem `tools/`, então a correção entra na F1; (c) `open-release` e `tag-release` não são idempotentes em reexecução, e a recuperação é manual
+- **Abandoned:** do `/code-review high`, 2 achados ficam de fora: (a) `check-pr` roda a política do próprio PR, e carregar a política da base quebraria o PR da F0, porque `develop` ainda não tem `tools/`, então a correção entra na F1; (b) `open-release` e `tag-release` não são idempotentes em reexecução, e a recuperação é manual. O `make mutation` cobre só `services/backend`, e o BFF entra na F4, com o `BuildHome`
 - **Walked:** n/a - a F0 não tem tela além do título; C9 cobre o `GET /` no stack real

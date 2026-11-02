@@ -1,9 +1,11 @@
+import asyncio
 from collections.abc import Iterator
 
 import httpx
 import pytest
 import respx
 from fastapi.testclient import TestClient
+from quadralug_bff.infrastructure import backend_client
 from quadralug_bff.infrastructure.backend_client import HttpBackendReadiness, build_backend_client
 from quadralug_bff.main import create_app
 
@@ -63,6 +65,22 @@ def test_ready_problem_when_backend_fails(
 
     assert response.status_code == 503
     assert response.headers["content-type"] == "application/problem+json"
+    assert response.json()["code"] == "not_ready"
+
+
+def test_ready_problem_when_backend_exceeds_total_deadline(
+    backend: respx.MockRouter, client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def slow_response(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(5)
+        return httpx.Response(200)
+
+    monkeypatch.setattr(backend_client, "TIMEOUT_SECONDS", 0.05)
+    backend.get(READY).mock(side_effect=slow_response)
+
+    response = client.get("/health/ready")
+
+    assert response.status_code == 503
     assert response.json()["code"] == "not_ready"
 
 

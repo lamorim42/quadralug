@@ -74,7 +74,44 @@ layers = ["interface | infrastructure", "application", "domain"]
 name = "backend: dominio sem dependencia externa"
 type = "forbidden"
 source_modules = ["quadralug_backend.identity.domain", "quadralug_backend.weather.domain"]
-forbidden_modules = ["fastapi", "sqlalchemy", "pydantic"]
+forbidden_modules = [
+    "alembic",
+    "fastapi",
+    "httpx",
+    "opentelemetry",
+    "pydantic",
+    "pymysql",
+    "quadralug_observability",
+    "sqlalchemy",
+    "starlette",
+    "uvicorn",
+]
+
+[[tool.importlinter.contracts]]
+name = "application sem dependencia externa"
+type = "forbidden"
+source_modules = [
+    "quadralug_backend.identity.application",
+    "quadralug_backend.weather.application",
+    "quadralug_bff.application",
+]
+forbidden_modules = [
+    "alembic",
+    "fastapi",
+    "httpx",
+    "opentelemetry",
+    "pydantic",
+    "pymysql",
+    "quadralug_observability",
+    "sqlalchemy",
+    "starlette",
+    "uvicorn",
+]
+
+[[tool.importlinter.contracts]]
+name = "backend e bff independentes"
+type = "independence"
+modules = ["quadralug_backend", "quadralug_bff"]
 
 [[tool.importlinter.contracts]]
 name = "backend: shared nao abre atalho para infraestrutura"
@@ -97,13 +134,3 @@ name = "bff: camadas"
 type = "layers"
 containers = ["quadralug_bff"]
 layers = ["interface | infrastructure", "application"]
-
-[tool.mutmut]
-source_paths = [
-    "services/backend/src/quadralug_backend/identity/domain",
-    "services/backend/src/quadralug_backend/identity/application",
-    "services/backend/src/quadralug_backend/weather/domain",
-    "services/backend/src/quadralug_backend/weather/application",
-    "services/bff/src/quadralug_bff/application",
-]
-pytest_add_cli_args_test_selection = ["services/backend/tests", "services/bff/tests"]

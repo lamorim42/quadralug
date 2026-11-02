@@ -32,6 +32,32 @@ def step_index(name: str, fragment: str) -> int:
     raise AssertionError(f"nenhum passo de {name} contém {fragment!r}")
 
 
+def assert_passes_pr_identity(name: str) -> None:
+    step = steps(name)[step_index(name, "check-pr")]
+
+    assert step["env"] == {
+        "HEAD_REF": "${{ github.head_ref }}",
+        "BASE_REF": "${{ github.base_ref }}",
+        "HEAD_REPO": "${{ github.event.pull_request.head.repo.full_name }}",
+        "BASE_REPO": "${{ github.repository }}",
+    }
+    for argument in (
+        '--head "$HEAD_REF"',
+        '--base "$BASE_REF"',
+        '--head-repo "$HEAD_REPO"',
+        '--base-repo "$BASE_REPO"',
+    ):
+        assert argument in step["run"]
+
+
+def test_ci_workflow_passes_pr_identity() -> None:
+    assert_passes_pr_identity("ci")
+
+
+def test_release_gate_workflow_passes_pr_identity() -> None:
+    assert_passes_pr_identity("release-gate")
+
+
 def test_ci_workflow_trigger() -> None:
     branches = triggers(load("ci"))["pull_request"]["branches"]
 

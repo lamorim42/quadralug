@@ -23,3 +23,15 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/quadralug_backend"]
+
+# O mutmut só importa o código mutado com o pacote inteiro em `src`.
+[tool.mutmut]
+source_paths = ["src"]
+do_not_mutate = [
+    "src/quadralug_backend/*/infrastructure/*",
+    "src/quadralug_backend/*/interface/*",
+    "src/quadralug_backend/shared/*",
+    "src/quadralug_backend/main.py",
+    "src/quadralug_backend/__main__.py",
+]
+pytest_add_cli_args_test_selection = ["tests"]

@@ -18,6 +18,7 @@ TIMEOUT_SECONDS = 600
 def base_env(project_name: str) -> dict[str, str]:
     env = {key: value for key, value in os.environ.items() if key != "VIRTUAL_ENV"}
     env["COMPOSE_PROJECT_NAME"] = project_name
+    env["DEPLOYMENT_ENVIRONMENT"] = "it"
     env.pop("COMPOSE_FILE", None)
     return env
 

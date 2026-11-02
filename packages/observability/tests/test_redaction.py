@@ -49,8 +49,9 @@ def test_redaction_reaches_nested_mapping() -> None:
     assert result == {"http": {"request": {"token": "[REDACTED]", "route": "/x"}}}
 
 
-def test_redaction_reaches_mappings_in_lists() -> None:
-    result = redact({"pessoas": [{"email": "a@b.c"}, {"nome": "x"}]})
+@pytest.mark.parametrize("sequence", [list, tuple])
+def test_redaction_reaches_mappings_in_lists(sequence: type) -> None:
+    result = redact({"pessoas": sequence([{"email": "a@b.c"}, {"nome": "x"}])})
 
     assert result == {"pessoas": [{"email": "[REDACTED]"}, {"nome": "x"}]}
 

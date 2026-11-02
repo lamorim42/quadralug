@@ -12,9 +12,9 @@ def live() -> dict[str, str]:
 
 
 @router.get("/ready")
-def ready(request: Request) -> JSONResponse:
+async def ready(request: Request) -> JSONResponse:
     backend: BackendReadiness = request.app.state.backend_readiness
-    if backend.is_ready():
+    if await backend.is_ready():
         return JSONResponse({"status": "ok"})
     return JSONResponse(
         {

@@ -48,19 +48,36 @@ def test_ruff_rejects_planted_violation(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "layer",
-    ["identity/domain", "identity/application", "weather/domain", "weather/application"],
+    "package",
+    [
+        "services/backend/src/quadralug_backend/identity/domain",
+        "services/backend/src/quadralug_backend/identity/application",
+        "services/backend/src/quadralug_backend/weather/domain",
+        "services/backend/src/quadralug_backend/weather/application",
+        "services/bff/src/quadralug_bff/application",
+    ],
 )
-def test_mypy_rejects_untyped_function(tmp_path: Path, layer: str) -> None:
-    package = tmp_path / "quadralug_backend" / layer
-    package.mkdir(parents=True)
-    planted = package / "planted.py"
-    planted.write_text("def total(value):\n    return value\n")
+def test_mypy_rejects_untyped_function(tmp_path: Path, package: str) -> None:
+    shutil.copy(ROOT / "pyproject.toml", tmp_path)
+    for tree in (
+        "packages/observability/src",
+        "services/backend/src",
+        "services/bff/src",
+        "tools",
+    ):
+        shutil.copytree(ROOT / tree, tmp_path / tree, ignore=shutil.ignore_patterns("__pycache__"))
+    (tmp_path / package / "planted.py").write_text("def total(value):\n    return value\n")
 
-    result = run("uv", "run", "mypy", "--config-file", "pyproject.toml", str(planted))
+    result = subprocess.run(
+        ["uv", "run", "--project", str(ROOT), "mypy"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
 
     assert result.returncode != 0
     assert "no-untyped-def" in result.stdout
+    assert "planted.py" in result.stdout
 
 
 def test_import_contract_clean_tree_passes(sources: Path) -> None:
@@ -106,6 +123,51 @@ def test_import_contract_clean_tree_passes(sources: Path) -> None:
             "bff/quadralug_bff/application/planted.py",
             "import quadralug_bff.interface\n",
             "bff: camadas",
+        ),
+        (
+            "backend/quadralug_backend/identity/domain/planted.py",
+            "import httpx\n",
+            "backend: dominio sem dependencia externa",
+        ),
+        (
+            "backend/quadralug_backend/identity/domain/planted.py",
+            "import starlette\n",
+            "backend: dominio sem dependencia externa",
+        ),
+        (
+            "backend/quadralug_backend/identity/domain/planted.py",
+            "import opentelemetry\n",
+            "backend: dominio sem dependencia externa",
+        ),
+        (
+            "backend/quadralug_backend/identity/domain/planted.py",
+            "import quadralug_observability\n",
+            "backend: dominio sem dependencia externa",
+        ),
+        (
+            "backend/quadralug_backend/identity/application/planted.py",
+            "import fastapi\n",
+            "application sem dependencia externa",
+        ),
+        (
+            "backend/quadralug_backend/identity/application/planted.py",
+            "import sqlalchemy\n",
+            "application sem dependencia externa",
+        ),
+        (
+            "bff/quadralug_bff/application/planted.py",
+            "import httpx\n",
+            "application sem dependencia externa",
+        ),
+        (
+            "bff/quadralug_bff/application/planted.py",
+            "import quadralug_backend.identity.domain\n",
+            "backend e bff independentes",
+        ),
+        (
+            "backend/quadralug_backend/identity/application/planted.py",
+            "import quadralug_bff.application\n",
+            "backend e bff independentes",
         ),
     ],
 )

@@ -161,7 +161,7 @@ def test_logs_carry_resource(stack: Stack, service: str, name: str) -> None:
 
     assert entries
     for entry in entries:
-        assert entry["resource"] == {"service.name": name, "deployment.environment": "dev"}
+        assert entry["resource"] == {"service.name": name, "deployment.environment": "it"}
 
 
 @pytest.mark.parametrize("service", ["backend", "bff"])

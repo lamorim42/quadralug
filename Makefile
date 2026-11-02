@@ -1,7 +1,8 @@
 IMAGE_TAG := $(shell git rev-parse --short HEAD)
 export IMAGE_TAG
 
-MUTATION_DIR := mutants
+# O BFF entra na F4, junto com o BuildHome: hoje só o backend terá regras.
+MUTATION_SERVICE := services/backend
 
 .PHONY: setup up down check integration mutation e2e
 
@@ -29,10 +30,10 @@ integration:
 	uv run pytest -m integration
 
 mutation:
-	rm -rf $(MUTATION_DIR)
-	-uv run mutmut run
-	-uv run mutmut export-cicd-stats
-	uv run python tools/mutation_gate.py $(MUTATION_DIR)/mutmut-cicd-stats.json
+	rm -rf $(MUTATION_SERVICE)/mutants
+	-cd $(MUTATION_SERVICE) && uv run mutmut run
+	-cd $(MUTATION_SERVICE) && uv run mutmut export-cicd-stats
+	uv run python tools/mutation_gate.py $(MUTATION_SERVICE)/mutants/mutmut-cicd-stats.json
 
 e2e:
 	@echo "make e2e: ainda não há suíte; ela entra na F5" >&2

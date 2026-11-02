@@ -56,7 +56,6 @@ class JsonFormatter(logging.Formatter):
                 "resource": self._resource,
                 "attributes": redact(_attributes_of(record)),
             },
-            ensure_ascii=False,
             default=str,
         )
 

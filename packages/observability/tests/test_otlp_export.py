@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 import threading
 from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -54,6 +57,26 @@ def test_otlp_exports_spans_to_the_endpoint(collector: Collector, suffix: str) -
 
     assert collector.paths == ["/v1/traces"]
     provider.shutdown()
+
+
+def test_otlp_configure_observability_reads_environment(collector: Collector) -> None:
+    script = (
+        "from fastapi import FastAPI\n"
+        "from opentelemetry import trace\n"
+        "from quadralug_observability import configure_observability\n"
+        "configure_observability(FastAPI(), 'quadralug-bff')\n"
+        "with trace.get_tracer('t').start_as_current_span('s'):\n"
+        "    pass\n"
+        "trace.get_tracer_provider().force_flush()\n"
+    )
+    env = {
+        **os.environ,
+        "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://127.0.0.1:{collector.server_port}",
+    }
+
+    subprocess.run([sys.executable, "-c", script], env=env, check=True)
+
+    assert collector.paths == ["/v1/traces"]
 
 
 def test_otlp_exporter_created_when_defined() -> None:

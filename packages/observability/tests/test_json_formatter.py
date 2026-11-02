@@ -1,7 +1,11 @@
 import json
 import logging
+import os
 import re
+import subprocess
 import sys
+import time
+from collections.abc import Iterator
 from typing import Any
 
 import pytest
@@ -45,8 +49,16 @@ def test_log_contract_timestamp_is_utc_with_z() -> None:
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z", entry["timestamp"])
 
 
-def test_log_contract_timestamp_ignores_local_timezone(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.fixture
+def bahia_timezone(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.setenv("TZ", "America/Bahia")
+    time.tzset()
+    yield
+    monkeypatch.undo()
+    time.tzset()
+
+
+def test_log_contract_timestamp_ignores_local_timezone(bahia_timezone: None) -> None:
     record = logging.LogRecord("t", logging.INFO, __file__, 1, "m", None, None)
     record.created = 0.0
 
@@ -91,11 +103,14 @@ def test_log_contract_ids_inside_span() -> None:
     assert re.fullmatch(r"[0-9a-f]{16}", entry["span_id"])
 
 
-def test_log_contract_newline_stays_on_one_line() -> None:
-    line = format_record("primeira\nsegunda")
+@pytest.mark.parametrize("separator", ["\n", "\r", "\v", "\f", "\x85", " ", " "])
+def test_log_contract_newline_stays_on_one_line(separator: str) -> None:
+    message = f"primeira{separator}segunda"
 
-    assert "\n" not in line
-    assert json.loads(line)["body"] == "primeira\nsegunda"
+    line = format_record(message)
+
+    assert line.splitlines() == [line]
+    assert json.loads(line)["body"] == message
 
 
 def test_log_contract_exception_stays_on_one_line() -> None:
@@ -121,6 +136,27 @@ def test_resource_attributes_in_every_log() -> None:
     entry = json.loads(format_record())
 
     assert entry["resource"] == RESOURCE
+
+
+def test_resource_attributes_reach_configured_logger() -> None:
+    script = (
+        "import logging\n"
+        "from fastapi import FastAPI\n"
+        "from quadralug_observability import configure_observability\n"
+        "configure_observability(FastAPI(), 'quadralug-bff')\n"
+        "logging.getLogger('t').info('evento')\n"
+    )
+    env = {**os.environ, "DEPLOYMENT_ENVIRONMENT": "homologacao"}
+
+    result = subprocess.run(
+        [sys.executable, "-c", script], env=env, capture_output=True, text=True, check=True
+    )
+
+    entry = json.loads(result.stdout.splitlines()[-1])
+    assert entry["resource"] == {
+        "service.name": "quadralug-bff",
+        "deployment.environment": "homologacao",
+    }
 
 
 @pytest.mark.parametrize("service", ["quadralug-bff", "quadralug-backend"])
