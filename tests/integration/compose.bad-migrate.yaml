@@ -1,0 +1,5 @@
+# Sobrepõe só a senha do migrate para provar que nada sobe depois dele.
+services:
+  migrate:
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER}:senha-errada@db:3306/${MYSQL_DATABASE}
