@@ -106,10 +106,13 @@ def test_make_mutation_runs_gate_without_stale_report(project: Path) -> None:
     report = project / "mutants" / "mutmut-cicd-stats.json"
     report.parent.mkdir()
     report.write_text(json.dumps({"killed": 1, "total": 1}))
+    previous_run = project / "mutants" / "planted.py.meta"
+    previous_run.write_text("{}")
 
     run_make(project, "mutation")
 
     assert not report.exists()
+    assert not previous_run.exists()
 
 
 def test_make_setup_points_hooks_and_creates_env(project: Path) -> None:

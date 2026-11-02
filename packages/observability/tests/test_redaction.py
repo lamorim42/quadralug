@@ -21,6 +21,10 @@ from quadralug_observability import JsonFormatter, redact
         "http.request.header.cookie",
         "http.response.header.set-cookie",
         "user.email",
+        "access_token",
+        "refresh_token",
+        "new_password",
+        "http.response.header.set_cookie",
     ],
 )
 def test_redaction_replaces_value(key: str) -> None:

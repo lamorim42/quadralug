@@ -54,6 +54,8 @@ def test_pr_route_accepts(head: str, base: str) -> None:
         ("feature/", "develop"),
         ("featurex", "develop"),
         ("release/", "main"),
+        ("release/foo", "main"),
+        ("release/0.1", "main"),
         ("main", "release/0.1.0"),
         ("feature/x", "feature/y"),
     ],

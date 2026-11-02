@@ -203,6 +203,6 @@ Proof: `uv run pytest tests/integration/test_stack.py -k test_boot_logs_no_error
 
 - **Settled mid-build:** none
 - **Dispatched:** none
-- **Boundary:** none
-- **Abandoned:** none
+- **Boundary:** C1-C41 fechados no commit que adiciona esta linha
+- **Abandoned:** do `/code-review high`, 3 achados ficam de fora: (a) a config do mutmut não muta este monorepo, e a F1 precisa resolver isso antes de cobrar a meta de 80%; (b) `check-pr` roda a política do próprio PR, e carregar a política da base quebraria o PR da F0, porque `develop` ainda não tem `tools/`, então a correção entra na F1; (c) `open-release` e `tag-release` não são idempotentes em reexecução, e a recuperação é manual
 - **Walked:** n/a - a F0 não tem tela além do título; C9 cobre o `GET /` no stack real

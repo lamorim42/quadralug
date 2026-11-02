@@ -106,6 +106,18 @@ def test_ready_reports_database_stopped(stack: Stack, database_stopped: None) ->
     assert json.loads(body)["code"] == "not_ready"
 
 
+def test_ready_reports_database_paused(stack: Stack) -> None:
+    assert stack.compose("pause", "db").returncode == 0
+    try:
+        status, body = stack.fetch("backend", "/health/ready")
+    finally:
+        assert stack.compose("unpause", "db").returncode == 0
+    stack.wait_healthy("backend")
+
+    assert status == 503
+    assert json.loads(body)["code"] == "not_ready"
+
+
 def test_ready_reports_database_available(stack: Stack) -> None:
     status, body = stack.fetch("backend", "/health/ready")
 

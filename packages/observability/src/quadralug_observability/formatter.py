@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import traceback
 from collections.abc import Mapping
 from datetime import UTC, datetime
@@ -8,9 +9,7 @@ from typing import Any
 from opentelemetry import trace
 
 REDACTED = "[REDACTED]"
-SENSITIVE_SEGMENTS = frozenset(
-    {"password", "password_hash", "token", "cookie", "set-cookie", "authorization", "email"}
-)
+SENSITIVE_SUFFIX = re.compile(r"(^|[_-])(password|password_hash|token|cookie|authorization|email)$")
 SEVERITIES = {
     logging.DEBUG: ("DEBUG", 5),
     logging.INFO: ("INFO", 9),
@@ -31,7 +30,7 @@ def redact(value: Any) -> Any:
 
 
 def _is_sensitive(key: Any) -> bool:
-    return str(key).rsplit(".", 1)[-1].lower() in SENSITIVE_SEGMENTS
+    return SENSITIVE_SUFFIX.search(str(key).rsplit(".", 1)[-1].lower()) is not None
 
 
 class JsonFormatter(logging.Formatter):

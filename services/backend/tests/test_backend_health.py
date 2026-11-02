@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from quadralug_backend.main import create_app
-from quadralug_backend.shared.database import SqlDatabaseProbe
+from quadralug_backend.shared.database import SqlDatabaseProbe, build_engine
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
@@ -53,6 +53,12 @@ def test_ready_probe_reports_real_query() -> None:
     reachable = SqlDatabaseProbe(engine).is_reachable()
 
     assert reachable is True
+
+
+def test_engine_hides_sql_parameters_from_errors() -> None:
+    engine = build_engine("mysql+pymysql://u:p@127.0.0.1:1/x")
+
+    assert engine.hide_parameters is True
 
 
 def test_ready_probe_reports_driver_failure() -> None:

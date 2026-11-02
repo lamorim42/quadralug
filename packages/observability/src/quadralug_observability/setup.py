@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -48,7 +47,3 @@ def configure_observability(app: FastAPI, service_name: str) -> None:
 
     app.add_middleware(RequestLogMiddleware)
     FastAPIInstrumentor.instrument_app(app, tracer_provider=provider)
-
-
-def instrument_http_clients() -> None:
-    HTTPXClientInstrumentor().instrument()

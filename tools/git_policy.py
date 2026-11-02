@@ -19,7 +19,7 @@ def pr_route_allowed(head: str, base: str, same_repo: bool) -> bool:
     if base == "develop":
         return head == "main" or _is_branch_of(head, "feature/")
     if base == "main":
-        return _is_branch_of(head, "release/")
+        return head.startswith("release/") and valid_version(head.removeprefix("release/"))
     if _is_branch_of(base, "release/"):
         return _is_branch_of(head, "feature/")
     return False

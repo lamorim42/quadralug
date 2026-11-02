@@ -6,12 +6,19 @@ from sqlalchemy.exc import SQLAlchemyError
 
 logger = logging.getLogger("quadralug.database")
 
-CONNECT_TIMEOUT_SECONDS = 2
+TIMEOUT_SECONDS = 2
 
 
 def build_engine(url: str) -> Engine:
     return create_engine(
-        url, pool_pre_ping=True, connect_args={"connect_timeout": CONNECT_TIMEOUT_SECONDS}
+        url,
+        pool_pre_ping=True,
+        hide_parameters=True,
+        connect_args={
+            "connect_timeout": TIMEOUT_SECONDS,
+            "read_timeout": TIMEOUT_SECONDS,
+            "write_timeout": TIMEOUT_SECONDS,
+        },
     )
 
 

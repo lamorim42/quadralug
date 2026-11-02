@@ -35,7 +35,7 @@ services:
       - data
     healthcheck:
       <<: *healthcheck
-      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --silent --password=$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --silent --password=\"$$MYSQL_ROOT_PASSWORD\""]
 
   migrate:
     <<: *backend-image

@@ -2,7 +2,8 @@ import os
 
 import uvicorn
 from fastapi import FastAPI
-from quadralug_observability import configure_observability, instrument_http_clients
+from quadralug_observability import configure_observability
+from quadralug_observability.http_client import instrument_http_clients
 
 from quadralug_bff.application.readiness import BackendReadiness
 from quadralug_bff.infrastructure.backend_client import HttpBackendReadiness, build_backend_client

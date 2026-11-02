@@ -1,7 +1,7 @@
 IMAGE_TAG := $(shell git rev-parse --short HEAD)
 export IMAGE_TAG
 
-MUTATION_REPORT := mutants/mutmut-cicd-stats.json
+MUTATION_DIR := mutants
 
 .PHONY: setup up down check integration mutation e2e
 
@@ -29,10 +29,10 @@ integration:
 	uv run pytest -m integration
 
 mutation:
-	rm -f $(MUTATION_REPORT)
+	rm -rf $(MUTATION_DIR)
 	-uv run mutmut run
 	-uv run mutmut export-cicd-stats
-	uv run python tools/mutation_gate.py $(MUTATION_REPORT)
+	uv run python tools/mutation_gate.py $(MUTATION_DIR)/mutmut-cicd-stats.json
 
 e2e:
 	@echo "make e2e: ainda não há suíte; ela entra na F5" >&2

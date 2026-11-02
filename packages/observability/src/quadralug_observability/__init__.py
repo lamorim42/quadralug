@@ -4,7 +4,6 @@ from quadralug_observability.setup import (
     build_resource,
     build_tracer_provider,
     configure_observability,
-    instrument_http_clients,
 )
 
 __all__ = [
@@ -13,6 +12,5 @@ __all__ = [
     "build_resource",
     "build_tracer_provider",
     "configure_observability",
-    "instrument_http_clients",
     "redact",
 ]
