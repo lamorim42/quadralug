@@ -1,0 +1,39 @@
+name: open-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Versão no formato x.y.z
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  open-release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          persist-credentials: false
+      - name: Valida a versão
+        run: python3 tools/git_policy.py check-release --version "$VERSION" --remote origin
+      - name: Cria a branch de release
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN }}
+        run: |
+          sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/develop" --jq .object.sha)"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f "ref=refs/heads/release/$VERSION" -f "sha=$sha"
+      - name: Abre o PR para main
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN }}
+        run: |
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "release/$VERSION" \
+            --title "release: $VERSION" --body "Promove develop para main na versão $VERSION."
