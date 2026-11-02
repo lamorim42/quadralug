@@ -205,7 +205,7 @@ Proof: `uv run pytest tests/integration/test_stack.py -k test_boot_logs_no_error
 ## Handoff
 
 - **Settled mid-build:** none
-- **Dispatched:** Verifier, no `HEAD` 4948023
-- **Boundary:** C1-C41 fechados no commit que adiciona esta linha
+- **Dispatched:** Verifier, no `HEAD` 4948023 - returned
+- **Boundary:** C1-C41 fechados em `0bfe5fe`, com 62 provas e 3 mutações mortas
 - **Abandoned:** do `/code-review high`, 2 achados ficam de fora: (a) `check-pr` roda a política do próprio PR, e carregar a política da base quebraria o PR da F0, porque `develop` ainda não tem `tools/`, então a correção entra na F1; (b) `open-release` e `tag-release` não são idempotentes em reexecução, e a recuperação é manual. O `make mutation` cobre só `services/backend`, e o BFF entra na F4, com o `BuildHome`
 - **Walked:** n/a - a F0 não tem tela além do título; C9 cobre o `GET /` no stack real

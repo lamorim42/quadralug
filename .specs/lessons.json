@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 7,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "spec_precision_gap::prove uma ferramenta de gate com a ferramenta real em um caso plantado um stub de cli prova so o makefile e deixou o mutmut medindo 0 sem ninguem ver",
+      "text": "Prove uma ferramenta de gate com a ferramenta real em um caso plantado: um stub de CLI prova só o Makefile e deixou o mutmut medindo 0 sem ninguém ver.",
+      "signal": "spec_precision_gap",
+      "scope": "tooling",
+      "status": "candidate",
+      "features": [
+        "f0-fundacao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC22 (tooling)"
+      ],
+      "created": "2026-11-02T15:02:09Z",
+      "last_seen": "2026-11-02T15:02:09Z"
+    },
+    {
+      "id": "L-002",
+      "key": "spec_deviation::contratos forbidden do import linter listam nomes entao parta da regra do tdd e enumere tudo o que ela proibe nao so os exemplos do criterio",
+      "text": "Contratos forbidden do import-linter listam nomes, então parta da regra do TDD e enumere tudo o que ela proíbe, não só os exemplos do critério.",
+      "signal": "spec_deviation",
+      "scope": "architecture",
+      "status": "candidate",
+      "features": [
+        "f0-fundacao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC21 (architecture)"
+      ],
+      "created": "2026-11-02T15:02:09Z",
+      "last_seen": "2026-11-02T15:02:09Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::teste o ponto de montagem com o ambiente real em subprocesso testar a funcao pura com environ injetado nao prova que o servico le a variavel",
+      "text": "Teste o ponto de montagem com o ambiente real em subprocesso: testar a função pura com environ injetado não prova que o serviço lê a variável.",
+      "signal": "surviving_mutant",
+      "scope": "observability",
+      "status": "candidate",
+      "features": [
+        "f0-fundacao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C18 (observability)"
+      ],
+      "created": "2026-11-02T15:02:09Z",
+      "last_seen": "2026-11-02T15:02:09Z"
+    },
+    {
+      "id": "L-004",
+      "key": "surviving_mutant::em workflows afirme o mapeamento de env e argumentos nao so o texto do comando procurar o comando deixa passar a origem errada do dado",
+      "text": "Em workflows, afirme o mapeamento de env e argumentos, não só o texto do comando: procurar o comando deixa passar a origem errada do dado.",
+      "signal": "surviving_mutant",
+      "scope": "ci",
+      "status": "candidate",
+      "features": [
+        "f0-fundacao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C29 (ci)"
+      ],
+      "created": "2026-11-02T15:02:09Z",
+      "last_seen": "2026-11-02T15:02:09Z"
+    },
+    {
+      "id": "L-005",
+      "key": "ac_gap::afirme ausencia de error no boot instrumentacao otel fora da faixa de versao so loga e se desliga com todas as suites verdes",
+      "text": "Afirme ausência de ERROR no boot: instrumentação OTel fora da faixa de versão só loga e se desliga, com todas as suítes verdes.",
+      "signal": "ac_gap",
+      "scope": "dependencies",
+      "status": "candidate",
+      "features": [
+        "f0-fundacao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C41 (dependencies)"
+      ],
+      "created": "2026-11-02T15:02:09Z",
+      "last_seen": "2026-11-02T15:02:09Z"
+    },
+    {
+      "id": "L-006",
+      "key": "spec_precision_gap::timeout do httpx vale por operacao um limite total de resposta exige asyncio timeout e precisa de teste com resposta lenta",
+      "text": "Timeout do httpx vale por operação: um limite total de resposta exige asyncio.timeout e precisa de teste com resposta lenta.",
+      "signal": "spec_precision_gap",
+      "scope": "http",
+      "status": "candidate",
+      "features": [
+        "f0-fundacao"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC8 (http)"
+      ],
+      "created": "2026-11-02T15:02:09Z",
+      "last_seen": "2026-11-02T15:02:09Z"
+    }
+  ]
+}
