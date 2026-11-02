@@ -67,7 +67,7 @@ As fases rodam em sequência, inclusive 2 e 3: `check_proofs.py` exige árvore l
 | `ci.yml`           | PR para `develop` e `release/*`  | Valida a branch de origem, roda `make check` e `make integration`                                          |
 | `release-gate.yml` | PR para `main`                     | Valida que a origem é `release/*`, roda `make check`, `make integration`, `make mutation` e `make e2e` |
 | `open-release.yml` | Manual (`workflow_dispatch`), com a versão | Cria `release/x.y.z` a partir de `develop` e abre o PR para `main`                                       |
-| `tag-release.yml`  | Push em `main`                     | Cria a tag `vX.Y.Z`. Se `main` tiver diferenças em relação a `develop`, abre o PR de `main` para `develop` |
+| `tag-release.yml`  | PR para `main` fechado com merge   | Cria a tag `vX.Y.Z`. Se a release tiver commits ausentes de `develop`, abre o PR de `main` para `develop`     |
 
 - **Token**: `open-release.yml` e `tag-release.yml` usam o secret `PROMOTION_TOKEN`, porque um PR aberto com o `GITHUB_TOKEN` não dispara a CI. É um *fine-grained token* limitado a este repositório, com escrita em Contents e Pull requests.
 - **Suítes por fase**: `release-gate.yml` nasce na Fase 0 com `make check` e `make integration`. `make mutation` entra na Fase 1, e `make e2e` na Fase 5, junto com as suítes que eles executam.
