@@ -6,7 +6,7 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi",
     "httpx",
-    "quadralug-observability",
+    "quadralug-observability[http-client]",
     "uvicorn",
 ]
 

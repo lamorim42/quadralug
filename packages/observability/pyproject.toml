@@ -12,6 +12,10 @@ dependencies = [
     "opentelemetry-sdk",
 ]
 
+[project.optional-dependencies]
+database = ["sqlalchemy"]
+http-client = ["httpx"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

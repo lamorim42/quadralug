@@ -34,10 +34,8 @@ def build_tracer_provider(
     return provider
 
 
-def configure_observability(
-    app: FastAPI, service_name: str, environ: Mapping[str, str] = os.environ
-) -> None:
-    resource = build_resource(service_name, environ)
+def configure_observability(app: FastAPI, service_name: str) -> None:
+    resource = build_resource(service_name, os.environ)
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter(resource))
@@ -45,9 +43,12 @@ def configure_observability(
     root_logger.handlers = [handler]
     root_logger.setLevel(logging.INFO)
 
-    provider = build_tracer_provider(resource, environ)
+    provider = build_tracer_provider(resource, os.environ)
     trace.set_tracer_provider(provider)
 
     app.add_middleware(RequestLogMiddleware)
     FastAPIInstrumentor.instrument_app(app, tracer_provider=provider)
-    HTTPXClientInstrumentor().instrument(tracer_provider=provider)
+
+
+def instrument_http_clients() -> None:
+    HTTPXClientInstrumentor().instrument()

@@ -152,6 +152,16 @@ def test_logs_carry_resource(stack: Stack, service: str, name: str) -> None:
         assert entry["resource"] == {"service.name": name, "deployment.environment": "dev"}
 
 
+@pytest.mark.parametrize("service", ["backend", "bff"])
+def test_boot_logs_no_errors(stack: Stack, service: str) -> None:
+    entries = stack.log_entries(service)
+
+    errors = [entry["body"] for entry in entries if entry["severity_number"] >= 17]
+
+    assert entries
+    assert errors == []
+
+
 def test_make_down_keeps_volume(stack: Stack) -> None:
     result = stack.run("make", "down")
 

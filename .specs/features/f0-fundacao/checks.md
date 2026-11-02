@@ -4,7 +4,7 @@ Mutations: 3
 Build: `uv run ruff check .`; `uv run ruff format --check .`; `uv run mypy`; `uv run lint-imports`; `cd web && npm run build`
 Plan: `.specs/features/f0-fundacao/plan.md`
 
-40 checks in 5 slices · 5 one-way doors · 0 open
+41 checks in 5 slices · 5 one-way doors · 0 open
 
 C1 a C36 têm o mesmo número do critério do plano. C37 em diante cobrem as portas e os alvos de `make` que o plano promete fora dos critérios.
 
@@ -155,6 +155,9 @@ Proof: `uv run pytest tests/repo/test_makefile.py -k test_make_e2e_reports_no_su
 **C40** - O nome dos jobs `ci` e `release-gate` não muda sem atualizar o ruleset: `ci.yml` tem exatamente o job `ci`, e `release-gate.yml` exatamente o job `release-gate` (door 3)
 Proof: `uv run pytest tests/repo/test_workflows.py -k test_required_check_job_names`
 
+**C41** - Os logs de `backend` e `bff` no stack real não têm nenhuma linha com `severity_number` 17 ou maior (achado no `/simplify`: o backend registrava um ERROR a cada boot ao instrumentar um `httpx` que ele não tem)
+Proof: `uv run pytest tests/integration/test_stack.py -k test_boot_logs_no_errors`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -194,7 +197,7 @@ Proof: `uv run pytest tests/repo/test_workflows.py -k test_required_check_job_na
 - data lifecycle: C12
 - dependency failure: C7, C8
 - state transitions: C2, C33
-- observability: C13, C14, C15, C16, C17, C18
+- observability: C13, C14, C15, C16, C17, C18, C41
 
 ## Handoff
 

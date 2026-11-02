@@ -8,8 +8,9 @@ dependencies = [
     "cryptography",
     "fastapi",
     "pymysql",
-    "quadralug-observability",
-    "sqlalchemy",
+    "quadralug-observability[database]",
+    # A instrumentação OTel só aceita sqlalchemy < 2.1 e, fora disso, desliga sozinha.
+    "sqlalchemy>=2.0,<2.1",
     "uvicorn",
 ]
 
