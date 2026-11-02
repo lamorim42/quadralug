@@ -2,9 +2,24 @@ name: quadralug
 
 x-backend-image: &backend-image
   image: quadralug-backend:${IMAGE_TAG:-dev}
+  build:
+    context: .
+    dockerfile: services/backend/Dockerfile
 
 x-database-env: &database-env
   DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+
+x-observability-env: &observability-env
+  DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-dev}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+
+# Sonda a cada 2 s na subida e a cada 30 s depois dela.
+x-healthcheck: &healthcheck
+  interval: 30s
+  timeout: 4s
+  retries: 3
+  start_period: 60s
+  start_interval: 2s
 
 services:
   db:
@@ -19,17 +34,13 @@ services:
     networks:
       - data
     healthcheck:
+      <<: *healthcheck
       test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --silent --password=$$MYSQL_ROOT_PASSWORD"]
-      interval: 3s
-      timeout: 3s
-      retries: 40
-      start_period: 10s
 
   migrate:
     <<: *backend-image
-    pull_policy: never
     working_dir: /app/services/backend
-    command: ["alembic", "-c", "alembic.ini", "upgrade", "head"]
+    command: ["alembic", "upgrade", "head"]
     environment:
       <<: *database-env
     networks:
@@ -37,17 +48,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: "no"
 
   backend:
     <<: *backend-image
-    build:
-      context: .
-      dockerfile: services/backend/Dockerfile
     environment:
-      <<: *database-env
-      DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-dev}
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      <<: [*database-env, *observability-env]
     networks:
       - internal
       - data
@@ -55,11 +60,8 @@ services:
       migrate:
         condition: service_completed_successfully
     healthcheck:
+      <<: *healthcheck
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
-      interval: 3s
-      timeout: 4s
-      retries: 20
-      start_period: 5s
 
   bff:
     image: quadralug-bff:${IMAGE_TAG:-dev}
@@ -67,9 +69,8 @@ services:
       context: .
       dockerfile: services/bff/Dockerfile
     environment:
+      <<: *observability-env
       BACKEND_URL: http://backend:8000
-      DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-dev}
-      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     networks:
       - public
       - internal
@@ -77,11 +78,8 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
+      <<: *healthcheck
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health/live', timeout=3)"]
-      interval: 3s
-      timeout: 4s
-      retries: 20
-      start_period: 5s
 
   web:
     image: quadralug-web:${IMAGE_TAG:-dev}
@@ -96,11 +94,8 @@ services:
       bff:
         condition: service_healthy
     healthcheck:
+      <<: *healthcheck
       test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:8080/"]
-      interval: 3s
-      timeout: 4s
-      retries: 20
-      start_period: 3s
 
 networks:
   public:

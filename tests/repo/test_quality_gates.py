@@ -98,6 +98,11 @@ def test_import_contract_clean_tree_passes(sources: Path) -> None:
             "backend: contextos independentes",
         ),
         (
+            "backend/quadralug_backend/identity/application/planted.py",
+            "import quadralug_backend.shared.database\n",
+            "backend: shared nao abre atalho para infraestrutura",
+        ),
+        (
             "bff/quadralug_bff/application/planted.py",
             "import quadralug_bff.interface\n",
             "bff: camadas",

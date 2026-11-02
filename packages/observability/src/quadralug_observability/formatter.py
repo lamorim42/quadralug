@@ -20,22 +20,18 @@ SEVERITIES = {
 }
 
 
-def redact(attributes: Mapping[str, Any]) -> dict[str, Any]:
-    return {key: _redact_item(key, value) for key, value in attributes.items()}
-
-
-def _redact_item(key: str, value: Any) -> Any:
-    if str(key).rsplit(".", 1)[-1].lower() in SENSITIVE_SEGMENTS:
-        return REDACTED
-    return _redact_value(value)
-
-
-def _redact_value(value: Any) -> Any:
+def redact(value: Any) -> Any:
     if isinstance(value, Mapping):
-        return redact(value)
+        return {
+            key: REDACTED if _is_sensitive(key) else redact(item) for key, item in value.items()
+        }
     if isinstance(value, list | tuple):
-        return [_redact_value(item) for item in value]
+        return [redact(item) for item in value]
     return value
+
+
+def _is_sensitive(key: Any) -> bool:
+    return str(key).rsplit(".", 1)[-1].lower() in SENSITIVE_SEGMENTS
 
 
 class JsonFormatter(logging.Formatter):
@@ -56,8 +52,8 @@ class JsonFormatter(logging.Formatter):
                 "severity_text": severity_text,
                 "severity_number": severity_number,
                 "body": record.getMessage(),
-                "trace_id": format(span_context.trace_id, "032x") if has_span else None,
-                "span_id": format(span_context.span_id, "016x") if has_span else None,
+                "trace_id": trace.format_trace_id(span_context.trace_id) if has_span else None,
+                "span_id": trace.format_span_id(span_context.span_id) if has_span else None,
                 "resource": self._resource,
                 "attributes": redact(_attributes_of(record)),
             },

@@ -43,20 +43,9 @@ def span_exporters(provider: TracerProvider) -> list[Any]:
     return [processor.span_exporter for processor in processors]
 
 
-def test_otlp_exports_spans_to_the_endpoint(collector: Collector) -> None:
-    endpoint = f"http://127.0.0.1:{collector.server_port}"
-    provider = build_tracer_provider(RESOURCE, {"OTEL_EXPORTER_OTLP_ENDPOINT": endpoint})
-
-    with provider.get_tracer("t").start_as_current_span("s"):
-        pass
-    provider.force_flush()
-
-    assert collector.paths == ["/v1/traces"]
-    provider.shutdown()
-
-
-def test_otlp_endpoint_with_trailing_slash(collector: Collector) -> None:
-    endpoint = f"http://127.0.0.1:{collector.server_port}/"
+@pytest.mark.parametrize("suffix", ["", "/"], ids=["sem-barra", "com-barra"])
+def test_otlp_exports_spans_to_the_endpoint(collector: Collector, suffix: str) -> None:
+    endpoint = f"http://127.0.0.1:{collector.server_port}{suffix}"
     provider = build_tracer_provider(RESOURCE, {"OTEL_EXPORTER_OTLP_ENDPOINT": endpoint})
 
     with provider.get_tracer("t").start_as_current_span("s"):

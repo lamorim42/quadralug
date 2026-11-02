@@ -22,7 +22,6 @@ dev = [
     "pyyaml",
     "respx",
     "ruff",
-    "types-pyyaml",
 ]
 
 [tool.uv]
@@ -38,14 +37,12 @@ quadralug-observability = { workspace = true }
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
 extend-exclude = [".agents", ".claude", ".cursor", ".windsurf", "web"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
-python_version = "3.13"
 strict = true
 files = [
     "packages/observability/src",
@@ -56,6 +53,7 @@ files = [
 
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib --strict-markers"
+pythonpath = ["tools"]
 testpaths = ["packages", "services", "tests"]
 markers = [
     "integration: sobe o stack real com Docker",
@@ -77,6 +75,17 @@ name = "backend: dominio sem dependencia externa"
 type = "forbidden"
 source_modules = ["quadralug_backend.identity.domain", "quadralug_backend.weather.domain"]
 forbidden_modules = ["fastapi", "sqlalchemy", "pydantic"]
+
+[[tool.importlinter.contracts]]
+name = "backend: shared nao abre atalho para infraestrutura"
+type = "forbidden"
+source_modules = [
+    "quadralug_backend.identity.domain",
+    "quadralug_backend.identity.application",
+    "quadralug_backend.weather.domain",
+    "quadralug_backend.weather.application",
+]
+forbidden_modules = ["quadralug_backend.shared.database", "quadralug_backend.shared.health"]
 
 [[tool.importlinter.contracts]]
 name = "backend: contextos independentes"

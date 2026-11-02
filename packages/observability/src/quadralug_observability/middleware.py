@@ -1,19 +1,13 @@
 import logging
-from collections.abc import Awaitable, Callable, MutableMapping
 from time import perf_counter
-from typing import Any
+
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger("quadralug.http")
 
-type Scope = MutableMapping[str, Any]
-type Message = MutableMapping[str, Any]
-type Receive = Callable[[], Awaitable[Message]]
-type Send = Callable[[Message], Awaitable[None]]
-type Asgi = Callable[[Scope, Receive, Send], Awaitable[None]]
-
 
 class RequestLogMiddleware:
-    def __init__(self, app: Asgi) -> None:
+    def __init__(self, app: ASGIApp) -> None:
         self._app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:

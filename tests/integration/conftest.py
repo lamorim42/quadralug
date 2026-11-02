@@ -43,6 +43,12 @@ def make_clean_copy(destination: Path) -> None:
     )
 
 
+def run_in(path: Path, env: dict[str, str], *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        args, cwd=path, env=env, capture_output=True, text=True, timeout=TIMEOUT_SECONDS
+    )
+
+
 @dataclass
 class Stack:
     path: Path
@@ -50,14 +56,7 @@ class Stack:
     up: subprocess.CompletedProcess[str]
 
     def run(self, *args: str) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
-            args,
-            cwd=self.path,
-            env=self.env,
-            capture_output=True,
-            text=True,
-            timeout=TIMEOUT_SECONDS,
-        )
+        return run_in(self.path, self.env, *args)
 
     def compose(self, *args: str) -> subprocess.CompletedProcess[str]:
         return self.run("docker", "compose", *args)
@@ -101,32 +100,19 @@ class Stack:
         raise AssertionError(f"{service} não ficou healthy")
 
 
-def bring_up(path: Path, env: dict[str, str]) -> Stack:
-    setup = subprocess.run(
-        ["make", "setup"],
-        cwd=path,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=TIMEOUT_SECONDS,
-    )
-    assert setup.returncode == 0, setup.stdout + setup.stderr
-    up = subprocess.run(
-        ["make", "up"], cwd=path, env=env, capture_output=True, text=True, timeout=TIMEOUT_SECONDS
-    )
-    return Stack(path=path, env=env, up=up)
-
-
 @pytest.fixture(scope="session")
 def workspace(tmp_path_factory: pytest.TempPathFactory) -> Path:
     path = tmp_path_factory.mktemp("clone")
     make_clean_copy(path)
+    setup = run_in(path, base_env("quadralug-it"), "make", "setup")
+    assert setup.returncode == 0, setup.stdout + setup.stderr
     return path
 
 
 @pytest.fixture(scope="session")
 def stack(workspace: Path) -> Iterator[Stack]:
-    result = bring_up(workspace, base_env("quadralug-it"))
+    env = base_env("quadralug-it")
+    result = Stack(path=workspace, env=env, up=run_in(workspace, env, "make", "up"))
     yield result
     result.compose("down", "--volumes", "--remove-orphans")
 
@@ -135,6 +121,6 @@ def stack(workspace: Path) -> Iterator[Stack]:
 def failed_migrate_stack(workspace: Path) -> Iterator[Stack]:
     env = base_env("quadralug-it-bad")
     env["COMPOSE_FILE"] = "compose.yaml:tests/integration/compose.bad-migrate.yaml"
-    result = bring_up(workspace, env)
+    result = Stack(path=workspace, env=env, up=run_in(workspace, env, "make", "up"))
     yield result
     result.compose("down", "--volumes", "--remove-orphans")

@@ -1,3 +1,4 @@
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -16,9 +17,17 @@ def test_layout_directories(directory: str) -> None:
 
 
 def test_layout_single_lockfile() -> None:
-    locks = [path for path in ROOT.rglob("uv.lock") if ".venv" not in path.parts]
+    files = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
 
-    assert locks == [ROOT / "uv.lock"]
+    locks = [name for name in files if Path(name).name == "uv.lock"]
+
+    assert locks == ["uv.lock"]
 
 
 @pytest.mark.parametrize("context", ["identity", "weather"])

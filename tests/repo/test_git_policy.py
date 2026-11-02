@@ -1,13 +1,8 @@
 import subprocess
-import sys
 from pathlib import Path
 
+import git_policy
 import pytest
-
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "tools"))
-
-import git_policy  # noqa: E402
 
 
 def git(repo: Path, *args: str) -> str:
