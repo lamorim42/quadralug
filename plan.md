@@ -7,7 +7,7 @@ O PRD está fechado e o TDD (Draft) define arquitetura, testes e 7 fases. O dire
 Decisões do autor nesta sessão:
 
 - **Claude implementa tudo**, e o autor aprova cada fase.
-- **`tlc-spec-lean` em cada fase**. Cada fase do TDD vira uma feature com `plan.md`, `checks.md`, build e Verifier independente.
+- **OpenSpec em cada fase**. Cada fase do TDD vira uma change com proposal, specs, design e tasks (AD-014; a F0 usou o `tlc-spec-lean`).
 - **Fluxo `feature/*` → `develop` → `release/*` → `main`**, orquestrado pelo GitHub Actions em um repositório público. Cada fase gera uma release, e os merges são sempre do autor.
 
 O PRD não é reaberto. O TDD é seguido, com os ajustes listados abaixo.
@@ -29,20 +29,18 @@ O Playwright roda em container, em `compose.e2e.yaml`, para não exigir `sudo` n
 Ao aprovar este plano, o autor autoriza `git init`, commits locais em `feature/*`, a criação do repositório público `quadralug` e o bootstrap descrito abaixo. O push de cada fase depende do OK da Parada 2.
 
 1. **Branch** `feature/fase-N-nome`, a partir de `develop` atualizada.
-2. **Plano**: `.specs/features/fN-nome/plan.md`, com critérios EARS, *path*, portas de mão única e os estados da Journey daquela fase. Roda `validate_plan.py`.
-3. **Parada 1, aprovação do autor**: a aprovação entra no `plan.md` com as palavras do autor.
-4. **Checks**: `checks.md`, com provas, coverage e as nove dimensões. Roda `validate_checks.py`.
-5. **Build**: testes escritos a partir dos checks, depois o código. Commits em Conventional Commits, validados com `check_commit.py`.
-6. **Testes**: `make check` e as suítes da fase ficam verdes.
-7. **Review de código**: `/simplify`, depois `/code-review high` sobre o diff `develop...HEAD`. `/security-review` entra nas fases 2, 4, 5 e 6. Os achados viram commits nesta etapa, porque o Verifier precisa ler o `HEAD` final.
-8. **Verificação independente**: `check_proofs.py`, depois um Verifier em sub-agente novo, que não lê o Handoff, com 3 mutações. A correção é feita de uma vez, seguida de `check_proofs.py --mutations`.
-9. **Gate**: `validate_verification.py` sai com 0, e as lições são registradas com `lessons.py`.
-10. **Parada 2, relatório ao autor**: resultado do gate, provas, desvios e os 3 arquivos que mais valem a leitura para o aprendizado. Com o OK, Claude faz o push da feature e abre o PR para `develop`.
-11. **PR para `develop`**: a CI roda, e o autor faz o merge quando ela fica verde. Se a CI falhar, a correção é um commit na mesma feature, que repete as etapas 6, 8 e 9 antes do novo push, coberto pelo mesmo OK.
-12. **Release**: o autor aciona o `open-release.yml`, que cria `release/x.y.z` a partir de `develop` e abre o PR para `main`.
-13. **PR para `main`**: o gate de release roda, e o autor faz o merge. O `tag-release.yml` cria a tag `vX.Y.Z`. A fase só fecha aqui, e a próxima parte de `develop`.
+2. **Proposta**: `/opsx:propose fN-nome` cria `openspec/changes/fN-nome/` com proposal, delta das specs, design e tasks, cobrindo os estados da Journey daquela fase. `openspec validate fN-nome` passa.
+3. **Parada 1, aprovação do autor**: a aprovação entra no `proposal.md` com as palavras do autor.
+4. **Build**: `/opsx:apply`, com os testes escritos a partir dos cenários das specs e depois o código. Commits em Conventional Commits.
+5. **Testes**: `make check` e as suítes da fase ficam verdes.
+6. **Review de código**: `/simplify`, depois `/code-review high` sobre o diff `develop...HEAD`. `/security-review` entra nas fases 2, 4, 5 e 6. Os achados viram commits nesta etapa.
+7. **Archive**: `/opsx:archive fN-nome` aplica o delta em `openspec/specs/` e move a change para `openspec/changes/archive/`. Roda na feature, antes do PR, porque só `feature/*` recebe commit e código e spec precisam chegar juntos em `develop`.
+8. **Parada 2, relatório ao autor**: testes, achados do review, desvios em relação ao design e os 3 arquivos que mais valem a leitura para o aprendizado. Com o OK, Claude faz o push da feature e abre o PR para `develop`.
+9. **PR para `develop`**: a CI roda, e o autor faz o merge quando ela fica verde. Se a CI falhar, a correção é um commit na mesma feature, que repete a etapa 5 antes do novo push, coberto pelo mesmo OK.
+10. **Release**: o autor aciona o `open-release.yml`, que cria `release/x.y.z` a partir de `develop` e abre o PR para `main`.
+11. **PR para `main`**: o gate de release roda, e o autor faz o merge. O `tag-release.yml` cria a tag `vX.Y.Z`. A fase só fecha aqui, e a próxima parte de `develop`.
 
-As fases rodam em sequência, inclusive 2 e 3: `check_proofs.py` exige árvore limpa em um `HEAD` único, então paralelizar não compensa.
+As fases rodam em sequência, inclusive 2 e 3, porque cada uma gera a própria release a partir de `develop`.
 
 ### Branches
 
@@ -54,8 +52,8 @@ As fases rodam em sequência, inclusive 2 e 3: `check_proofs.py` exige árvore l
 | `main`          | Código entregue      | PR de `release/*`                                                  |
 
 - **Versão**: a Fase N gera `release/0.(N+1).0`, de `0.1.0` na Fase 0 a `0.6.0` na Fase 5. A Fase 6 gera `release/1.0.0`.
-- **Merge**: sempre *merge commit*, nos três níveis. Squash e rebase ficam desligados para preservar os commits avaliados pelo Verifier.
-- **Correção em release**: sai de `feature/fix-*`, criada a partir da `release/x.y.z`, passa pelas etapas 5 a 10 e abre o PR para a release. Depois do merge em `main`, o `tag-release.yml` abre o PR de `main` para `develop`, para a correção não se perder.
+- **Merge**: sempre *merge commit*, nos três níveis. Squash e rebase ficam desligados para preservar os commits de cada feature.
+- **Correção em release**: sai de `feature/fix-*`, criada a partir da `release/x.y.z`, passa pelas etapas 4 a 8 e abre o PR para a release. Depois do merge em `main`, o `tag-release.yml` abre o PR de `main` para `develop`, para a correção não se perder.
 - **Regra local**: `.githooks/pre-commit` recusa commits fora de `feature/*`, e `.githooks/pre-push` recusa push de outras branches.
 - **Regra no GitHub**: `develop`, `main` e `release/*` exigem PR e CI verde e recusam push direto e force push, inclusive de administradores. Nenhuma aprovação é exigida, porque o GitHub não deixa quem abriu o PR aprová-lo, e os PRs saem da conta do autor.
 - **Limpeza**: as branches `feature/*` e `release/*` são apagadas depois do merge. A tag preserva cada release.
@@ -93,7 +91,7 @@ Os checks obrigatórios entram na proteção durante o PR da Fase 0, porque o Gi
 | 2    | `f2-identidade-api`     | Alembic, repositórios MySQL, Argon2id, tokens, `/v1` de contas e sessões                      | Testcontainers, `upgrade → downgrade → upgrade`, dois cadastros concorrentes, rotas com Problem Details                                          | `/security-review`                                                                                                             |
 | 3    | `f3-clima`              | Domínio, cache, adapter Open-Meteo, `/v1/forecasts/weekly`                                     | Unitários, Hypothesis, respx, fuso `America/Bahia`, falha não cacheada, mutmut                                                                   | Começa gravando um payload real como fixture                                                                                    |
 | 4    | `f4-bff`                | `/api`, cookie, `Origin`, `BuildHome`, cliente do backend                                   | Unitários, contrato, falha parcial, mutmut                                                                                                          | `/security-review`                                                                                                             |
-| 5    | `f5-spa`                | Telas, guardas de rota, logout, nginx (proxy, CSP, rate limit, `no-store`), harness E2E         | Vitest, Playwright do caminho feliz, teste do `429` com o limite real, walk no app                                                                 | `/security-review`; sem captura, logo sem sub-agente de telas. Larguras assumidas: 360 a 1280 px, a confirmar no plano da fase |
+| 5    | `f5-spa`                | Telas, guardas de rota, logout, nginx (proxy, CSP, rate limit, `no-store`), harness E2E         | Vitest, Playwright do caminho feliz, teste do `429` com o limite real, walk no app                                                                 | `/security-review`. Larguras assumidas: 360 a 1280 px, a confirmar na proposta da fase |
 | 6    | `f6-aceite`             | 12/12 estados em E2E, checklist da seção 5 do TDD, mutation final, TDD atualizado               | Suíte completa em ambiente limpo                                                                                                                    | `/security-review`                                                                                                             |
 
 As fases 1 a 4 são camadas, não fatias verticais. Por isso, a pessoa só usa o produto de fato a partir da Fase 5, e a Fase 6 é a prova integrada.
@@ -111,7 +109,7 @@ As fases 1 a 4 são camadas, não fatias verticais. Por isso, a pessoa só usa o
 
 ## Ajustes ao TDD
 
-O TDD tem contradições ou lacunas que travariam a implementação. A decisão de cada item está abaixo; ela entra no TDD e em `.specs/STATE.md` no commit da fase.
+O TDD tem contradições ou lacunas que travariam a implementação. A decisão de cada item está abaixo; ela entra no TDD e em `DECISIONS.md` no commit da fase.
 
 | Fase | Problema no TDD                                                                                             | Decisão                                                                                                                                              |
 | ---- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -147,13 +145,14 @@ packages/observability/
 web/                SPA React + Vite + TS, nginx, Dockerfile
 e2e/                Playwright, weather-stub
 contracts/backend-v1.openapi.json
-.specs/             STATE.md, LESSONS.md, features/
+openspec/           config.yaml, specs/, changes/
+DECISIONS.md
 ```
 
 - **Makefile**: `setup` (aponta `core.hooksPath` para `.githooks`), `up`, `down`, `check` (ruff, mypy, import-linter, unitários, Vitest), `integration`, `mutation`, `e2e`.
 - **Dependência adicional**: `pytest-cov`, necessária para a meta de cobertura.
 - **`AGENTS.md`**: declara `mutations: 3`, o nível de teste por camada, as regras de branch, a autorização de push dada pelo OK da Parada 2 e a exigência do trailer `Co-Authored-By` nos commits, porque a skill o proíbe se o repositório não pedir. `CLAUDE.md` aponta para ele.
-- **Git**: versiona `.github`, `.githooks`, `.prd`, `.tdd`, `.specs`, `Projeto.md`, `plan.md` e `.claude/skills`. Ignora `.env`, `.agents`, `.cursor` e `.windsurf`.
+- **Git**: versiona `.github`, `.githooks`, `.prd`, `.tdd`, `openspec`, `DECISIONS.md`, `Projeto.md`, `plan.md` e `.claude/skills`. Ignora `.env`, `.agents`, `.cursor` e `.windsurf`.
 
 ## Verificação final
 
@@ -162,7 +161,7 @@ Em ambiente limpo, ao fim da Fase 6:
 1. `docker compose down -v`, `docker compose up --wait`: o `migrate` termina com sucesso e todos os serviços ficam saudáveis.
 2. `make check`, `make integration`, `make mutation` e `make e2e`, todos verdes, com **12/12 estados** do PRD.
 3. Cobertura ≥ 90% em `domain` e `application`, mutmut na meta e zero violações no import-linter.
-4. `validate_verification.py` sai com 0 para as 7 features.
+4. `openspec validate --all` sai com 0, e as changes F1 a F6 estão em `openspec/changes/archive/`.
 5. Fluxo manual com a Open-Meteo real: criar conta, ver hoje e os 6 dias, sair, e confirmar que voltar no navegador não reabre a home.
 6. Logs conferidos: mesmo `trace_id` entre BFF e backend, sem senha, token, cookie ou e-mail em claro.
 7. `release-gate.yml` verde no PR de `release/1.0.0`, merge feito pelo autor e tag `v1.0.0` criada em `main`.

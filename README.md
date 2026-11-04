@@ -128,4 +128,4 @@ compose.yaml             Definição do ambiente local
 - [Arquitetura](.tdd/quadralug-conta-e-home.md)
 - [Plano de fases e fluxo de entrega](plan.md)
 - [Regras para contribuir](AGENTS.md)
-- [Decisões](.specs/STATE.md)
+- [Decisões](DECISIONS.md)

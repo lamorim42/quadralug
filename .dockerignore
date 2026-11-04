@@ -7,7 +7,7 @@
 .windsurf
 .prd
 .tdd
-.specs
+openspec
 .env
 .venv
 **/__pycache__

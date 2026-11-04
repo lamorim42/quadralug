@@ -1,6 +1,6 @@
-# Project state
+# Decisões
 
-## Decisions
+Registro das decisões que valem para o projeto inteiro. Uma decisão nova entra como a próxima AD, e uma decisão substituída fica na tabela com o status `superseded`.
 
 | ID | Decision | Rationale | Status | Date |
 | --- | --- | --- | --- | --- |
@@ -17,3 +17,4 @@
 | AD-011 | `sqlalchemy` fica em `>=2.0,<2.1` | A instrumentação OTel recusa 2.1 e se desliga, deixando só um ERROR no boot | active | 2026-11-02 |
 | AD-012 | Cada serviço só instrumenta o cliente que tem: `quadralug_observability.database` no backend e `.http_client` no BFF. A F3 passa a chamar `instrument_http_clients` no backend | O instrumentador de httpx loga ERROR quando o pacote não está instalado | active | 2026-11-02 |
 | AD-013 | Rotas do BFF que chamam o backend são `async`, com `httpx.AsyncClient` e `asyncio.timeout` para o prazo total. O backend segue síncrono | O timeout do httpx vale por operação, e uma resposta em partes passava de 5 s | active | 2026-11-02 |
+| AD-014 | O OpenSpec substitui o `tlc-spec-lean` a partir da F1. Cada fase é uma change em `openspec/changes/`, com proposal, specs, design e tasks. O Verifier independente, as mutações dele e o registro de lições saem; as lições da F0 viram `rules` em `openspec/config.yaml`. As Paradas 1 e 2 continuam, e o `/opsx:archive` roda na feature, antes do PR. A AD-002 segue valendo, agora para manter os commits de cada feature visíveis | Escolha do autor depois da F0. O archive antes do PR faz código e spec chegarem juntos em `develop`, já que só `feature/*` recebe commit | active | 2026-11-03 |

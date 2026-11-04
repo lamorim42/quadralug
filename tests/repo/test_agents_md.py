@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[2]
 @pytest.mark.parametrize(
     "fragment",
     [
-        "mutations: 3",
+        "Parada 1",
+        "`/opsx:archive` roda na feature, antes do PR",
         "## Nível de teste por camada",
         "| `domain` e `application` | Unitário",
         "`feature/*` → `develop` → `release/x.y.z` → `main`",

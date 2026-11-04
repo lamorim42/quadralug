@@ -1,0 +1,19 @@
+schema: spec-driven
+
+context: |
+  Escreva todos os artefatos (proposal, specs, design, tasks) em português do Brasil.
+  Mantenha em inglês as palavras-chave que o formato OpenSpec exige
+  (Requirement, Scenario, SHALL/MUST, WHEN/THEN) e os identificadores de código.
+
+# Lições da F0 (L-001 a L-006), cada uma no artefato em que ela muda o resultado.
+rules:
+  specs:
+    - Quando a change adiciona ou troca instrumentação OpenTelemetry, inclua um cenário de boot sem nenhuma linha ERROR; instrumentação fora da faixa de versão só loga e se desliga, com todas as suítes verdes.
+  design:
+    - Um prazo total de resposta HTTP usa asyncio.timeout; o timeout do httpx vale por operação e não limita uma resposta lenta em partes.
+    - Contratos forbidden do import-linter listam nomes, então parta da regra do TDD e enumere tudo o que ela proíbe, não só os exemplos.
+  tasks:
+    - Prove uma ferramenta de gate com a ferramenta real contra um caso plantado; um stub de CLI prova só o Makefile.
+    - Teste o ponto de montagem com o ambiente real em subprocesso; testar a função pura com environ injetado não prova que o serviço lê a variável.
+    - Em testes de workflow, afirme o mapeamento de env e argumentos, não só o texto do comando.
+    - Todo prazo total de resposta HTTP tem uma task de teste com resposta lenta, que só passa se o limite for respeitado.

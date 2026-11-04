@@ -5,11 +5,19 @@ Plataforma de aluguel de quadras em Salvador, BA. Projeto de estudo com qualidad
 - Produto: `.prd/quadralug-conta-e-home.md`
 - Arquitetura: `.tdd/quadralug-conta-e-home.md`
 - Fases e fluxo: `plan.md`
-- Decisões: `.specs/STATE.md`
+- Decisões: `DECISIONS.md`
+- Specs e changes: `openspec/`
 
-## tlc-spec-lean
+## Ciclo de uma fase
 
-mutations: 3
+Cada fase é uma change do OpenSpec, com o nome da feature em `plan.md` (por exemplo, `f1-identidade-dominio`).
+
+1. `/opsx:propose` cria proposal, specs, design e tasks.
+2. Parada 1: o autor aprova os artefatos antes de qualquer código.
+3. `/opsx:apply` implementa as tasks, com testes primeiro.
+4. `make check` e as suítes da fase ficam verdes, e o review roda sobre `develop...HEAD`.
+5. `/opsx:archive` roda na feature, antes do PR, para código e spec chegarem juntos em `develop`.
+6. Parada 2: relatório ao autor, e só então push e PR.
 
 ## Comandos
 
@@ -44,7 +52,7 @@ Código que só repassa argumentos não precisa de teste próprio.
 
 ## Push
 
-O Claude só faz push de uma feature depois do OK da Parada 2, o relatório ao autor. Esse OK também cobre os commits de correção de CI na mesma feature e o PR temporário de prova da etapa 11.
+O Claude só faz push de uma feature depois do OK da Parada 2, o relatório ao autor. Esse OK também cobre os commits de correção de CI na mesma feature e os PRs temporários que provam a CI.
 
 ## Commits
 
