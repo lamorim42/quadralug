@@ -1,0 +1,11 @@
+#!/bin/sh
+# Commits só acontecem em feature/* (AD-001).
+
+branch=$(git symbolic-ref --quiet --short HEAD) || branch="HEAD destacado"
+
+case "$branch" in
+  feature/?*) exit 0 ;;
+esac
+
+echo "commit recusado em '$branch': use uma branch feature/*" >&2
+exit 1
