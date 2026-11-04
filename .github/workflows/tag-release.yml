@@ -1,0 +1,60 @@
+name: tag-release
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  tag-release:
+    if: >-
+      github.event.pull_request.merged == true
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Calcula a tag
+        id: tag
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: >-
+          python3 tools/git_policy.py tag-for-merge
+          --head "$HEAD_REF" --merged "$MERGED"
+          --head-repo "$HEAD_REPO" --base-repo "$BASE_REPO" >> "$GITHUB_OUTPUT"
+      - name: Cria a tag no commit de merge
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f "ref=refs/tags/$TAG" -f "sha=$MERGE_SHA"
+      - name: Verifica se a release tem commits ausentes de develop
+        id: backmerge
+        env:
+          RELEASE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          python3 tools/git_policy.py needs-backmerge
+          --develop origin/develop --release "$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+      - name: Abre o PR de main para develop
+        if: steps.backmerge.outputs.needed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTION_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          gh pr create --repo "$GITHUB_REPOSITORY" --base develop --head main \
+            --title "chore: leva a correção de $TAG para develop" \
+            --body "A release $TAG recebeu commits que não estão em develop."

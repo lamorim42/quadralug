@@ -67,7 +67,7 @@ O projeto também é um veículo de aprendizado. Por isso adota práticas explí
 - Previsão pela localização do usuário. Decisão do PRD.
 - Quadras, disponibilidade, reservas e pagamento. São as próximas fases.
 - Coletor OpenTelemetry e backends de observabilidade (Jaeger, Grafana etc.). Fica para depois, por YAGNI.
-- Deploy em nuvem e CI/CD remoto. O ambiente desta fase é local, com Docker Compose.
+- Deploy em nuvem. O ambiente desta fase é local, com Docker Compose. O GitHub Actions cuida só de CI e da promoção de branches.
 - Exclusão de conta e exportação de dados (LGPD). Ver Questões em Aberto.
 
 ### 🔮 Considerações futuras (V2+)
@@ -225,7 +225,7 @@ graph TB
 
 - **Regra de dependência**: as dependências sempre apontam para dentro. `domain` não importa nada externo, nem FastAPI, nem SQLAlchemy, nem Pydantic. `application` depende só de `domain` e das próprias portas.
 - **Composition root**: um único ponto monta as dependências concretas (repositórios, hasher, provider, clock) e as injeta nos casos de uso pela injeção de dependência do FastAPI. Assim a inversão de dependência (o "D" do SOLID) fica explícita.
-- **Organização**: primeiro por bounded context (`identity`, `weather`), depois por camada dentro de cada contexto. O que é compartilhado (configuração, logging, conexão de banco) fica num núcleo `shared`, mínimo e sem regras de negócio.
+- **Organização**: primeiro por bounded context (`identity`, `weather`), depois por camada dentro de cada contexto. O que é compartilhado no backend (configuração, conexão de banco) fica num núcleo `shared`, mínimo e sem regras de negócio. A configuração OTel que o BFF também usa fica no pacote `packages/observability`.
 - **Verificação automática da regra**: `import-linter` com contratos de camadas, rodando nos testes. Uma violação quebra o build.
 - **Princípios aplicados**:
   - **SRP**: um caso de uso por classe.
@@ -406,7 +406,7 @@ O prefixo `identity_` deixa explícito qual contexto é dono de cada tabela. Cli
 | `migrate` | mesma imagem do backend                                                   | —                    | data             | executa e termina   |
 
 - Dependências de subida: `db` (healthy) → `migrate` (completed successfully) → `backend` (healthy) → `bff` → `web`.
-- O backend não tem saída para a internet, a não ser para a Open-Meteo. A rede `data` é `internal: true`, e o backend acessa a internet pela rede `internal`.
+- A rede `data` é `internal: true`, e o backend acessa a internet pela rede `internal`. O Compose não filtra saída por destino, então o backend tem saída geral, embora só deva chamar a Open-Meteo. O risco fica registrado.
 - As imagens Python rodam como usuário não-root e usam `uv` para instalar dependências com lockfile.
 - A configuração vem só de variáveis de ambiente (12-factor), via `.env` local fora do versionamento, com um `.env.example` versionado. O arquivo `compose.yaml` descreve o ambiente local.
 - Em dev, o `web` atende em HTTP na porta 8080. Por isso a flag `Secure` do cookie é configurável (`COOKIE_SECURE=false` só em dev).
@@ -495,7 +495,7 @@ O prefixo `identity_` deixa explícito qual contexto é dono de cada tabela. Cli
 ### Mutation testing (mutmut)
 
 - Alvo: `domain` e `application` dos dois serviços Python. A infraestrutura fica de fora, porque mutantes nela geram ruído e já são cobertos por integração.
-- Roda localmente sob demanda e num alvo de `make`. Mutantes sobreviventes viram testes novos, ou uma justificativa registrada.
+- Roda em `make mutation`, que compara o resultado com a meta e sai com erro abaixo dela. O `release-gate.yml` roda esse alvo nos PRs para `main` a partir da F1. Mutantes sobreviventes viram testes novos, ou uma justificativa registrada.
 - Meta inicial ≥ 80%, revisada ao final da fase.
 
 ### Dados de teste

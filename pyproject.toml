@@ -1,0 +1,136 @@
+[project]
+name = "quadralug"
+version = "0.0.0"
+description = "Workspace do Quadralug"
+requires-python = ">=3.13"
+dependencies = [
+    "quadralug-backend",
+    "quadralug-bff",
+    "quadralug-observability",
+]
+
+[dependency-groups]
+dev = [
+    "actionlint-py",
+    "httpx",
+    "hypothesis",
+    "import-linter",
+    "mutmut",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "pyyaml",
+    "respx",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["services/*", "packages/*"]
+
+[tool.uv.sources]
+quadralug-backend = { workspace = true }
+quadralug-bff = { workspace = true }
+quadralug-observability = { workspace = true }
+
+[tool.ruff]
+line-length = 100
+extend-exclude = [".agents", ".claude", ".cursor", ".windsurf", "web"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+strict = true
+files = [
+    "packages/observability/src",
+    "services/backend/src",
+    "services/bff/src",
+    "tools",
+]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib --strict-markers"
+pythonpath = ["tools"]
+testpaths = ["packages", "services", "tests"]
+markers = [
+    "integration: sobe o stack real com Docker",
+    "github: faz um push real contra o GitHub; roda só como prova da fase",
+]
+
+[tool.importlinter]
+root_packages = ["quadralug_backend", "quadralug_bff"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "backend: camadas de cada contexto"
+type = "layers"
+containers = ["quadralug_backend.identity", "quadralug_backend.weather"]
+layers = ["interface | infrastructure", "application", "domain"]
+
+[[tool.importlinter.contracts]]
+name = "backend: dominio sem dependencia externa"
+type = "forbidden"
+source_modules = ["quadralug_backend.identity.domain", "quadralug_backend.weather.domain"]
+forbidden_modules = [
+    "alembic",
+    "fastapi",
+    "httpx",
+    "opentelemetry",
+    "pydantic",
+    "pymysql",
+    "quadralug_observability",
+    "sqlalchemy",
+    "starlette",
+    "uvicorn",
+]
+
+[[tool.importlinter.contracts]]
+name = "application sem dependencia externa"
+type = "forbidden"
+source_modules = [
+    "quadralug_backend.identity.application",
+    "quadralug_backend.weather.application",
+    "quadralug_bff.application",
+]
+forbidden_modules = [
+    "alembic",
+    "fastapi",
+    "httpx",
+    "opentelemetry",
+    "pydantic",
+    "pymysql",
+    "quadralug_observability",
+    "sqlalchemy",
+    "starlette",
+    "uvicorn",
+]
+
+[[tool.importlinter.contracts]]
+name = "backend e bff independentes"
+type = "independence"
+modules = ["quadralug_backend", "quadralug_bff"]
+
+[[tool.importlinter.contracts]]
+name = "backend: shared nao abre atalho para infraestrutura"
+type = "forbidden"
+source_modules = [
+    "quadralug_backend.identity.domain",
+    "quadralug_backend.identity.application",
+    "quadralug_backend.weather.domain",
+    "quadralug_backend.weather.application",
+]
+forbidden_modules = ["quadralug_backend.shared.database", "quadralug_backend.shared.health"]
+
+[[tool.importlinter.contracts]]
+name = "backend: contextos independentes"
+type = "independence"
+modules = ["quadralug_backend.identity", "quadralug_backend.weather"]
+
+[[tool.importlinter.contracts]]
+name = "bff: camadas"
+type = "layers"
+containers = ["quadralug_bff"]
+layers = ["interface | infrastructure", "application"]
